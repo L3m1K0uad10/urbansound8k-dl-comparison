@@ -70,7 +70,7 @@ Contains 8732 audio clips belonging to 10 classes:
           |                     |                        |
     Mel Spectrogram         Raw Waveform          Log-Mel Spectrogram
           |                     |                        |
-     Simple CNN               M5 CNN                     AST
+     Simple CNN               M5 CNN                  Mini-AST: with 4 transformer layers
           |                     |                        |
         ResNet18            (optional)             Transformer Encoder
           ------------------------------------------------
