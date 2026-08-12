@@ -80,3 +80,70 @@ Contains 8732 audio clips belonging to 10 classes:
                              |
                       Demo Application
 ```
+
+## Demo Development architecture
+```
+Upload Audio
+     │
+     ▼
+Preprocessing
+     │
+     ├── Mono
+     ├── 16 kHz
+     ├── 4 seconds
+     └── Normalization
+     │
+     ▼
+Log-Mel Spectrogram
+     │
+     ▼
+ResNet18
+     │
+     ▼
+Prediction
+     │
+     ├── Predicted class
+     ├── Confidence
+     └── All class probabilities
+     │
+     ▼
+Visualizations
+     ├── Waveform
+     └── Log-Mel Spectrogram
+```
+
+### freezing the final preprocessing specification
+
+```
+Audio
+ ↓
+Mono
+ ↓
+16,000 Hz
+ ↓
+4 seconds
+ ↓
+64,000 samples
+ ↓
+MelSpectrogram
+ ↓
+128 Mel bands
+ ↓
+Log
+ ↓
+ResNet18
+```
+*see app/preprocessing.py* for preprocessing implementation
+
+### model
+```
+ResNet18 architecture
+        ↓
+load checkpoint
+        ↓
+model.eval()
+```
+
+
+
+
