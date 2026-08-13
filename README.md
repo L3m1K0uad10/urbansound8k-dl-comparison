@@ -1,26 +1,35 @@
-# UrbanSound8K: Comparative Study of CNNs and Transformers for Environmental Sound Classification
+# UrbanSound8K: Comparative Study of Deep Learning Architectures for Environmental Sound Classification
 
 ## Description
 
-This project investigates different deep learning approaches for environmental sound classification using the UrbanSound8K dataset. Three pipelines are explored:
+This project investigates different deep learning approaches for environmental sound classification using the UrbanSound8K dataset.
 
-1. Image-based classification using Mel-spectrograms and 2D CNNs.
-2. Temporal modeling using raw waveform signals and 1D CNN architectures.
-3. Attention-based models using Audio Spectrogram Transformers.
+Three classification pipelines are explored:
 
-The models are compared based on:
+1. **Vision-based classification** using Log-Mel spectrograms and a 2D ResNet18 CNN.
+2. **Temporal classification** using raw waveform signals and the M5 1D CNN architecture.
+3. **Attention-based classification** using Log-Mel spectrograms and a Mini Audio Spectrogram Transformer (Mini-AST).
 
-- Classification accuracy
-- Inference speed
+The models are compared across multiple dimensions:
+
+- Accuracy
+- Precision
+- Recall
+- F1-score
+- Number of parameters
 - Model size
+- Training time
+- Inference latency
+- Confusion matrices
+- Error patterns and misclassifications
 
-The best model is deployed through a demonstration application.
+The best-performing model is subsequently deployed through a Streamlit demonstration application.
 
 ## Project Goal
 
 ### Main Goal
 
-Learn audio machine learning by understanding how sounds can be represented and classified using different neural network architectures.
+Learn audio machine learning by understanding how environmental sounds can be represented and classified using different neural network architectures.
 
 ### Specific Objectives
 
@@ -30,68 +39,121 @@ Learn audio machine learning by understanding how sounds can be represented and 
 - Build 2D CNN audio classifiers.
 - Build 1D waveform classifiers.
 - Explore Transformer-based audio classification.
-- Compare multiple architectures.
-- Build a Demo App with the best model
+- Compare multiple architectures and audio representations.
+- Analyze classification errors and confusion patterns.
+- Evaluate computational characteristics of the models.
+- Deploy the best-performing model through a demonstration application.
 
 ## Dataset
 
 ### UrbanSound8K
 
-Contains 8732 audio clips belonging to 10 classes:
+UrbanSound8K contains 8,732 labeled audio clips belonging to 10 environmental sound classes.
 
-| Class            |
-| ---------------- |
-| Air Conditioner  |
-| Car Horn         |
+| Class |
+| --- |
+| Air Conditioner |
+| Car Horn |
 | Children Playing |
-| Dog Bark         |
-| Drilling         |
-| Engine Idling    |
-| Gun Shot         |
-| Jackhammer       |
-| Siren            |
-| Street Music     |
+| Dog Bark |
+| Drilling |
+| Engine Idling |
+| Gun Shot |
+| Jackhammer |
+| Siren |
+| Street Music |
 
+## Overall Architecture
 
-## Overall Architecure
-
-```
-
-                        Raw Audio (.wav)
-                             |
-                     Common Preprocessing
-      (Mono, Resample, Pad/Truncate, Normalize)
-                             |
+```text
+                         Raw Audio (.wav)
+                               |
+                       Audio Preprocessing
+            (Mono, Resample, Pad/Truncate, Normalize)
+                               |
           ------------------------------------------------
           |                     |                        |
           |                     |                        |
     Pipeline 1             Pipeline 2              Pipeline 3
       Vision                Temporal                Attention
           |                     |                        |
-    Mel Spectrogram         Raw Waveform          Log-Mel Spectrogram
+   Log-Mel Spectrogram      Raw Waveform         Log-Mel Spectrogram
           |                     |                        |
-     Simple CNN               M5 CNN                  Mini-AST: with 4 transformer layers
+      ResNet18                 M5 CNN          Mini-AST (4 Transformer
+          |                     |               Encoder Layers)
           |                     |                        |
-        ResNet18            (optional)             Transformer Encoder
           ------------------------------------------------
-                             |
-                  Evaluation & Comparison
-          (Accuracy, Latency, Parameters, F1)
-                             |
-                      Demo Application
+                               |
+                    Evaluation & Comparison
+        (Accuracy, Precision, Recall, F1, Latency,
+              Parameters, Model Size, Error Analysis)
+                               |
+                       Demo Application
 ```
 
-## Demo Development architecture
+## Pipeline 1 — Vision
+```
+Audio Waveform
+      ↓
+Preprocessing
+      ↓
+Log-Mel Spectrogram
+      ↓
+ResNet18
+      ↓
+10-Class Prediction
+```
+
+The ResNet18 model operates on the Log-Mel spectrogram representation of the audio signal.
+
+
+## Pipeline 2 — Temporal
+```
+Audio Waveform
+      ↓
+Preprocessing
+      ↓
+Raw Waveform
+      ↓
+M5 1D CNN
+      ↓
+10-Class Prediction
+```
+
+The M5 architecture operates directly on the temporal waveform representation.
+
+## Pipeline 3 — Attention
+```
+Audio Waveform
+      ↓
+Preprocessing
+      ↓
+Log-Mel Spectrogram
+      ↓
+Patch Extraction
+      ↓
+Mini-AST
+      ↓
+Transformer Encoder
+      ↓
+10-Class Prediction
+```
+
+The Mini-AST model uses Transformer-based attention mechanisms to model relationships between spectrogram patches.
+
+## Demo Application Architecture
+
+The best-performing model is deployed through a Streamlit application.
 ```
 Upload Audio
      │
      ▼
 Preprocessing
      │
-     ├── Mono
-     ├── 16 kHz
-     ├── 4 seconds
-     └── Normalization
+     ├── Mono conversion
+     ├── Resampling to 16 kHz
+     ├── Padding / truncation to 4 seconds
+     └── Waveform normalization
      │
      ▼
 Log-Mel Spectrogram
@@ -104,7 +166,8 @@ Prediction
      │
      ├── Predicted class
      ├── Confidence
-     └── All class probabilities
+     ├── Top-3 predictions
+     └── Class probability distribution
      │
      ▼
 Visualizations
@@ -112,8 +175,9 @@ Visualizations
      └── Log-Mel Spectrogram
 ```
 
-### freezing the final preprocessing specification
+## Final Preprocessing Specification
 
+The preprocessing pipeline used by the deployed model is fixed to ensure that inference data follows the same representation used during training.
 ```
 Audio
  ↓
@@ -125,25 +189,100 @@ Mono
  ↓
 64,000 samples
  ↓
-MelSpectrogram
+Mel Spectrogram
  ↓
 128 Mel bands
  ↓
-Log
+Log transformation
+ ↓
+Input shape: 1 × 128 × 126
  ↓
 ResNet18
 ```
-*see app/preprocessing.py* for preprocessing implementation
 
-### model
+## Mel-Spectrogram Configuration
 ```
-ResNet18 architecture
+Sample rate  : 16,000 Hz
+n_fft        : 1024
+hop_length   : 512
+n_mels       : 128
+Duration     : 4 seconds
+Samples      : 64,000
+```
+
+See `app/preprocessing.py` for the implementation of the preprocessing pipeline.
+
+## Deployed Model
+
+The demonstration application uses the trained ResNet18 checkpoint.
+```
+ResNet18 Architecture
         ↓
-load checkpoint
+Load Trained Checkpoint
         ↓
 model.eval()
+        ↓
+Inference
+        ↓
+10-Class Prediction
 ```
 
+Model checkpoint:
+```
+models/best_resnet18.pth
+```
 
+## Project Structure
+```
+Environmental sound classification/
+│
+├── app/
+│   ├── preprocessing.py
+│   └── streamlit_app.py
+│
+├── models/
+│   └── best_resnet18.pth
+│
+├── notebooks/
+│   └── ...
+│
+├── test_preprocessing.py
+├── test_model.py
+├── test_inference.py
+└── README.md
+```
 
+## Results
 
+The three pipelines are evaluated using both predictive performance and computational characteristics.
+
+The final comparison includes:
+- Accuracy
+- Precision
+- Recall
+- F1-score
+- Number of parameters
+- Model size
+- Training time
+- Inference latency
+- Confusion matrices
+- Misclassification analysis
+
+The three pipelines were evaluated using predictive performance, computational characteristics, confusion matrices, and error analysis. ResNet18 achieved the strongest validation performance among the evaluated models.
+
+[__see notebook/UrbanSound8K_Comparative_Study_audio_classification.ipynb__]
+
+## Demo
+
+The trained model can be interacted with through the Streamlit demonstration application.
+
+The application allows users to:
+- Upload an audio file.
+- Preview the uploaded audio.
+- Inspect the waveform.
+- Inspect the Log-Mel spectrogram.
+- Obtain the predicted environmental sound class.
+- View prediction confidence.
+- View the Top-3 predictions.
+- Inspect the probability distribution across all 10 classes.
+- Review information about the deployed model.
